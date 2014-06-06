@@ -2,6 +2,8 @@
 Amazon Payments package for django-oscar
 =========================================
 
+THIS IS A WIP AND SHOULD NOT BE USED
+
 This package provides integration between django-oscar_ and `Amazon Payments`_
 
 .. _django-oscar: https://github.com/tangentlabs/django-oscar

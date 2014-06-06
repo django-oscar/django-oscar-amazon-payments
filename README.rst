@@ -2,12 +2,6 @@
 Amaazon Payments package for django-oscar
 =========================================
 
-#.. image:: https://pypip.in/v/django-oscar-amazon-payments/badge.png
-#    :target: https://crate.io/packages/django-oscar-amazon-payments/
-#
-#.. image:: https://pypip.in/d/django-oscar-amazon-payments/badge.png
-#    :target: https://crate.io/packages/django-oscar-amazon-payments/
-#
 This package provides integration between django-oscar_ and `Amazon Payments`_
 
 .. _django-oscar: https://github.com/tangentlabs/django-oscar

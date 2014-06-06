@@ -1,5 +1,5 @@
 =========================================
-Amaazon Payments package for django-oscar
+Amazon Payments package for django-oscar
 =========================================
 
 This package provides integration between django-oscar_ and `Amazon Payments`_

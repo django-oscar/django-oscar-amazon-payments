@@ -1,0 +1,24 @@
+*.sw[po]
+*.py[oc]
+
+# Packaging
+dist
+build/
+django_oscar_amazon_payments.egg-info/
+docs/_build
+
+# Testing
+htmlcov
+.tox
+.coverage
+.coveralls.yml
+
+# Database
+sandbox/db.sqlite
+
+# Sensitive data
+TODO
+integration.py
+
+# Sandbox
+sandbox/public/media

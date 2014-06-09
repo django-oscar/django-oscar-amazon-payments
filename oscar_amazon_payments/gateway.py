@@ -79,7 +79,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -106,7 +106,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -125,7 +125,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -144,7 +144,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -164,7 +164,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -221,7 +221,7 @@ class Gateway(object):
             'TransactionTimeout': transaction_timeout,
             'CaptureNow': capture_now,
             'SoftDescriptor': soft_descriptor,
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -240,7 +240,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -260,7 +260,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -284,7 +284,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -308,7 +308,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -327,7 +327,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 
@@ -345,7 +345,7 @@ class Gateway(object):
             'SignatureMethod': 'HmacSHA256',
             'SignatureVersion': 2,
             'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',  # TODO replace with settings.AMAZON_API_VERSION
+            'Version': '2013-01-01',
             'Signature': self._calculate_signature(),
         }
 

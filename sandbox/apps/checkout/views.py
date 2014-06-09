@@ -18,7 +18,7 @@ class PaymentDetailsView(OscarPaymentDetailsView):
     def get_context_data(self, **kwargs):
         # Add bankcard form to the template context
         ctx = super(PaymentDetailsView, self).get_context_data(**kwargs)
-        ctx['bankcard_form'] = kwargs.get('bankcard_form', BankcardForm())
+        ctx['seller_id'] = settings.AMAZON_SELLER_ID
         return ctx
 
     def handle_payment_details_submission(self, request):

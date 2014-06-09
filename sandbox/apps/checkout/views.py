@@ -4,11 +4,10 @@ from django.contrib import messages
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from oscar.apps.checkout.views import PaymentDetailsView as OscarPaymentDetailsView
+from oscar.apps.checkout.views import ShippingAddressView as OscarShippingAddressView, PaymentDetailsView as OscarPaymentDetailsView
+from oscar.apps.checkout.views import ShippingMethodView as OscarShippingMethodView
 from oscar.apps.payment.forms import BankcardForm
 from oscar.apps.payment.models import SourceType, Source
-from oscar.apps.order.models import ShippingAddress
-from oscar.apps.address.models import UserAddress
 
 from oscar_amazon_payments.facade import Facade
 
@@ -74,3 +73,56 @@ class PaymentDetailsView(OscarPaymentDetailsView):
 
         # Also record payment event
         self.add_payment_event('pre-auth', total.incl_tax)
+
+
+class ShippingAddressView(OscarShippingAddressView):
+
+    def get_context_data(self, *args, **kwargs):
+        ctx = super(ShippingAddressView, self).get_context_data(*args, **kwargs)
+        ctx['seller_id'] = settings.AMAZON_SELLER_ID
+        reference_id = self.request.GET.get('reference_id', None)
+        if reference_id is None:
+            raise http.Http404
+        ctx['amazon_order_reference_id'] = reference_id
+        return ctx
+
+
+class ShippingMethodView(OscarShippingMethodView):
+
+    def get(self, request, *args, **kwargs):
+        # These pre-conditions can't easily be factored out into the normal
+        # pre-conditions as they do more than run a test and then raise an
+        # exception if it fails.
+
+        # Check that shipping is required at all
+        if not request.basket.is_shipping_required():
+            # No shipping required - we store a special code to indicate so.
+            self.checkout_session.use_shipping_method(
+                NoShippingRequired().code)
+            return self.get_success_response()
+
+        # Check that shipping address has been completed
+        if not self.checkout_session.is_shipping_address_set():
+            messages.error(request, _("Please choose a shipping address"))
+            return http.HttpResponseRedirect(
+                reverse('checkout:shipping-address'))
+
+        # Save shipping methods as instance var as we need them both here
+        # and when setting the context vars.
+        self._methods = self.get_available_shipping_methods()
+        if len(self._methods) == 0:
+            # No shipping methods available for given address
+            messages.warning(request, _(
+                "Shipping is unavailable for your chosen address - please "
+                "choose another"))
+            return http.HttpResponseRedirect(
+                reverse('checkout:shipping-address'))
+        elif len(self._methods) == 1:
+            # Only one shipping method - set this and redirect onto the next
+            # step
+            self.checkout_session.use_shipping_method(self._methods[0].code)
+            return self.get_success_response()
+
+        # Must be more than one available shipping method, we present them to
+        # the user to make a choice.
+        return super(ShippingMethodView, self).get(request, *args, **kwargs)

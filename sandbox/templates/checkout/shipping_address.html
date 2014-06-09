@@ -1,0 +1,51 @@
+{% extends "checkout/checkout.html" %}
+{% load i18n %}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script type='text/javascript' src='https://static-eu.payments-amazon.com/OffAmazonPayments/uk/sandbox/js/Widgets.js?sellerId={{ seller_id }}'>
+    </script>
+{% endblock %}
+
+{% block title %}
+    {% trans "Shipping address" %} | {{ block.super }}
+{% endblock %}
+
+{% block checkout_nav %}
+    {% include 'checkout/nav.html' with step=1 %}
+{% endblock %}
+
+{% block checkout_title %}{% trans "Shipping address" %}{% endblock %}
+
+{% block order_contents %}{% endblock %}
+
+{% block shipping_address %}
+    <div class="sub-header">
+        <h2>{% trans "Where should we ship to?" %}</h2>
+    </div>
+    <div id="addressBookWidgetDiv">
+    </div>
+    <br>
+    <a class="btn btn-large btn-primary" href="{% url 'checkout:shipping-method' %}">Proceed to Payment Options</a>
+{% endblock shipping_address %}
+
+{% block shipping_method %}{% endblock %}
+{% block payment_method %}{% endblock %}
+{% block extrascripts %}
+    {{ block.super }}
+    <script>
+        new OffAmazonPayments.Widgets.AddressBook({
+            sellerId: '{{ seller_id }}',
+            amazonOrderReferenceId: '{{ amazon_order_reference_id }}',
+            // amazonOrderReferenceId obtained from Button widget
+            onAddressSelect: function(orderReference) {
+            },
+            design: {
+                size : {width:'400px', height:'260px'}
+            },
+            onError: function(error) {
+                alert(error);
+            }
+        }).bind("addressBookWidgetDiv");
+    </script>
+{% endblock %}

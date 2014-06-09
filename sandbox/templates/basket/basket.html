@@ -52,7 +52,7 @@
             sellerId: '{{ seller_id }}',
             onSignIn: function(orderReference) {
                 amazonOrderReferenceId = orderReference.getAmazonOrderReferenceId();
-                window.location = 'http://localhost:8000/?session=' + amazonOrderReferenceId;
+                window.location = '{% url "checkout:shipping-address" %}?reference_id=' + amazonOrderReferenceId;
             },
             onError: function(error) {
                 alert(error);

@@ -41,11 +41,14 @@ class Facade(object):
     def cancel_transaction(self):
         pass
 
+    def get_status(self):
+        response = self.gateway.get_service_status()
+        return response
+
     def _generate_authorization_reference_id(self):
         return ''.join([random.choice(string.ascii_letters) for n in xrange(30)])
 
     def get_shipping_address(self):
-        # TODO Fill in stub
-        # response = self.gateway.get_order_reference_details()
-        address = {'line1': 'lynton road', 'state': 'london', 'country': uk, 'post_code': 'SE1 5RB'}
-        return address
+        response = self.gateway.get_order_reference_details()
+        import ipdb; ipdb.set_trace()
+        return response.content

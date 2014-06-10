@@ -1,5 +1,4 @@
 import logging
-import datetime
 import time
 import requests
 import hmac
@@ -66,32 +65,32 @@ class Gateway(object):
 
     def _canonicalize_payload(self):
         canonical_form = (
-            'POST\n' +
+            'GET\n' +
             settings.AMAZON_PAYMENTS_URL +
             '\n' +
-            settings.AMAZON_PAYMENTS_URL_PATH.lower() +
-            '\n' +
+            settings.AMAZON_PAYMENTS_URL_PATH +
+            '/' +
             settings.AMAZON_PAYMENTS_URL_VERSION +
             '\n'
         )
-        key_list = []
-        for key, value in self.payload.items():
-            key_list.append(key)
+        key_list = self.payload.keys()
         key_list = sorted(key_list)
-        for key in key_list:
-            canonical_form += urllib.quote_plus(key) + urllib.quote_plus(self.payload[key]) + '&'
-        return canonical_form[:-1]
+        values = map(self.payload.get, key_list)
+        url_string = urllib.urlencode(zip(key_list, values))
+        canonical_form += url_string
+        return canonical_form
 
     def _calculate_signature(self):
         msg = self._canonicalize_payload()
-        sig = hmac.new(settings.AMAZON_SECRET_KEY, msg.encode('utf-8'), hashlib.sha256).digest()
-        return base64.b64encode(sig).decode()
+        sig = hmac.new(settings.AMAZON_SECRET_KEY, msg, hashlib.sha256).digest()
+        base64_sig = base64.encodestring(sig).strip()
+        return urllib.quote_plus(base64_sig)
 
     def _get_date(self):
         return time.strftime('%Y-%m-%d')
 
     def _get_urlencoded_timestamp(self):
-        return urllib.quote_plus(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
+        return urllib.quote_plus(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
 
     # ===
     # API
@@ -108,7 +107,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        return requests.get(AMAZON_PAYMENTS_URI, params=self.payload)
 
     def set_order_reference_details(self, amount, currency, order_id, note=None):
         """

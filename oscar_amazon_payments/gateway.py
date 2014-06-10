@@ -5,6 +5,7 @@ import requests
 import hmac
 import hashlib
 import base64
+import urllib
 
 from django.conf import settings
 
@@ -23,6 +24,12 @@ CAPTURE = 'Capture'
 REFUND = 'Refund'
 GET_REFUND_DETAILS = 'GetRefundDetails'
 GET_SERVICE_STATUS = 'GetServiceStatus'
+
+AMAZON_PAYMENTS_URI = 'https://{}/{}/{}'.format(
+    settings.AMAZON_PAYMENTS_URL,
+    settings.AMAZON_PAYMENTS_URL_PATH,
+    settings.AMAZON_PAYMENTS_URL_VERSION
+)
 
 
 class Request(object):
@@ -53,11 +60,30 @@ class Gateway(object):
             'AmazonOrderReferenceId': self.amazon_order_reference_id,
             'SellerId': settings.AMAZON_SELLER_ID,
             'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
+            'SignatureVersion': '2',
             'Version': '2013-01-01',
         }
 
-    def _calculate_signature(self, msg):
+    def _canonicalize_payload(self):
+        canonical_form = (
+            'POST\n' +
+            settings.AMAZON_PAYMENTS_URL +
+            '\n' +
+            settings.AMAZON_PAYMENTS_URL_PATH.lower() +
+            '\n' +
+            settings.AMAZON_PAYMENTS_URL_VERSION +
+            '\n'
+        )
+        key_list = []
+        for key, value in self.payload.items():
+            key_list.append(key)
+        key_list = sorted(key_list)
+        for key in key_list:
+            canonical_form += urllib.quote_plus(key) + urllib.quote_plus(self.payload[key]) + '&'
+        return canonical_form[:-1]
+
+    def _calculate_signature(self):
+        msg = self._canonicalize_payload()
         sig = hmac.new(settings.AMAZON_SECRET_KEY, msg.encode('utf-8'), hashlib.sha256).digest()
         return base64.b64encode(sig).decode()
 
@@ -65,8 +91,7 @@ class Gateway(object):
         return time.strftime('%Y-%m-%d')
 
     def _get_urlencoded_timestamp(self):
-        # TODO URL Encode before returning
-        return datetime.datetime.now()
+        return urllib.quote_plus(datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'))
 
     # ===
     # API
@@ -83,7 +108,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def set_order_reference_details(self, amount, currency, order_id, note=None):
         """
@@ -102,7 +127,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def confirm_order_reference(self):
         """
@@ -113,7 +138,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def cancel_order_reference(self):
         """
@@ -124,7 +149,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def close_order_reference(self, closure_reason=''):
         """
@@ -136,7 +161,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def async_auth(self, amount, currency, note='', capture_now='false', soft_descriptor=''):
         """
@@ -185,7 +210,7 @@ class Gateway(object):
         self.payload['SoftDescriptor'] = soft_descriptor
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def get_authorization_details(self):
         """
@@ -195,7 +220,7 @@ class Gateway(object):
         self.payload['Action'] = GET_AUTHORIZATION_DETAILS
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def close_authorization(self, closure_reason=''):
         """
@@ -206,7 +231,7 @@ class Gateway(object):
         self.payload['ClosureReason'] = closure_reason
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def capture(self, amount, currency, capture_reference_id, note='', soft_descriptor=''):
         """
@@ -222,7 +247,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def refund(self, capture_id, refund_amount, currency, refund_reference_id, note='', soft_descriptor=''):
         """
@@ -239,7 +264,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def get_refund_details(self, refund_reference_id):
         """
@@ -251,7 +276,7 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
 
     def get_service_status(self):
         """
@@ -262,4 +287,8 @@ class Gateway(object):
         self.payload['Timestamp'] = self._get_urlencoded_timestamp()
         self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
+        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+
+if __name__ == "__main__":
+    gateway = Gateway('123')
+    print gateway._get_urlencoded_timestamp()

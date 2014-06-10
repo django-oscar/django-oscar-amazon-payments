@@ -1,5 +1,6 @@
 import logging
 import time
+import datetime
 import requests
 import hmac
 import hashlib
@@ -54,7 +55,7 @@ class Gateway(object):
     def __init__(self, amazon_order_reference_id):
         self.amazon_order_reference_id = amazon_order_reference_id
 
-        self.payload = {
+        self.payload_template = {
             'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
             'AmazonOrderReferenceId': self.amazon_order_reference_id,
             'SellerId': settings.AMAZON_SELLER_ID,
@@ -63,34 +64,34 @@ class Gateway(object):
             'Version': '2013-01-01',
         }
 
-    def _canonicalize_payload(self):
+    def _canonicalize_payload(self, payload):
         canonical_form = (
-            'GET\n' +
+            'POST\n' +
             settings.AMAZON_PAYMENTS_URL +
             '\n' +
+            '/' +
             settings.AMAZON_PAYMENTS_URL_PATH +
             '/' +
             settings.AMAZON_PAYMENTS_URL_VERSION +
             '\n'
         )
-        key_list = self.payload.keys()
-        key_list = sorted(key_list)
-        values = map(self.payload.get, key_list)
+        key_list = payload.keys()
+        key_list.sort()
+        values = map(payload.get, key_list)
         url_string = urllib.urlencode(zip(key_list, values))
         canonical_form += url_string
         return canonical_form
 
-    def _calculate_signature(self):
-        msg = self._canonicalize_payload()
+    def _calculate_signature(self, payload):
+        msg = self._canonicalize_payload(payload)
         sig = hmac.new(settings.AMAZON_SECRET_KEY, msg, hashlib.sha256).digest()
-        base64_sig = base64.encodestring(sig).strip()
-        return urllib.quote_plus(base64_sig)
+        return base64.encodestring(sig).strip()
 
     def _get_date(self):
         return time.strftime('%Y-%m-%d')
 
     def _get_urlencoded_timestamp(self):
-        return urllib.quote_plus(time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()))
+        return datetime.datetime.now().isoformat()
 
     # ===
     # API
@@ -103,11 +104,13 @@ class Gateway(object):
         self.amazon_order_reference_id is retrieved from the authenticate with amazon widget once the
         customer has authenticated
         """
-        self.payload['Action'] = GET_ORDER_REFERENCE
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.get(AMAZON_PAYMENTS_URI, params=self.payload)
+        payload['Action'] = GET_ORDER_REFERENCE
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature(payload)
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def set_order_reference_details(self, amount, currency, order_id, note=None):
         """
@@ -117,50 +120,58 @@ class Gateway(object):
         available.
         """
 
-        self.payload['Action'] = SET_ORDER_REFERENCE
-        self.payload['AmazonOrderReferenceAttributes.OrderTotal.Amount'] = amount
-        self.payload['OrderReferenceAttributes.OrderTotal.CurrencyCode'] = currency
-        self.payload['OrderReferenceAttributes.SellerNote'] = note
-        self.payload['OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'] = order_id
-        self.payload['OrderReferenceAttributes.SellerOrderAttributes.StoreName'] = settings.AMAZON_STORE_NAME
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = SET_ORDER_REFERENCE
+        payload['AmazonOrderReferenceAttributes.OrderTotal.Amount'] = amount
+        payload['OrderReferenceAttributes.OrderTotal.CurrencyCode'] = currency
+        payload['OrderReferenceAttributes.SellerNote'] = note
+        payload['OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'] = order_id
+        payload['OrderReferenceAttributes.SellerOrderAttributes.StoreName'] = settings.AMAZON_STORE_NAME
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def confirm_order_reference(self):
         """
         ConfirmOrderReference
         """
 
-        self.payload['Action'] = CONFIRM_ORDER_REFERENCE
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = CONFIRM_ORDER_REFERENCE
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def cancel_order_reference(self):
         """
         CancelOrderReference
         """
 
-        self.payload['Action'] = CANCEL_ORDER_REFERENCE
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = CANCEL_ORDER_REFERENCE
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def close_order_reference(self, closure_reason=''):
         """
         CloseOrderReference
         """
 
-        self.payload['Action'] = CLOSE_ORDER_REFERENCE
-        self.payload['ClosureReason'] = closure_reason
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = CLOSE_ORDER_REFERENCE
+        payload['ClosureReason'] = closure_reason
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def async_auth(self, amount, currency, note='', capture_now='false', soft_descriptor=''):
         """
@@ -198,95 +209,109 @@ class Gateway(object):
         Completes the authorization request
         """
 
-        self.payload['Action'] = AUTHORIZE,
-        self.payload['AuthorizationAmount.Amount'] = amount
-        self.payload['AuthorizationAmount.Currency'] = currency
-        self.payload['AuthorizationReferenceId'] = authorization_reference_id
-        self.payload['SellerAuthorizationNote'] = note
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['TransactionTimeout'] = transaction_timeout
-        self.payload['CaptureNow'] = capture_now
-        self.payload['SoftDescriptor'] = soft_descriptor
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = AUTHORIZE,
+        payload['AuthorizationAmount.Amount'] = amount
+        payload['AuthorizationAmount.Currency'] = currency
+        payload['AuthorizationReferenceId'] = authorization_reference_id
+        payload['SellerAuthorizationNote'] = note
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['TransactionTimeout'] = transaction_timeout
+        payload['CaptureNow'] = capture_now
+        payload['SoftDescriptor'] = soft_descriptor
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def get_authorization_details(self):
         """
         GetAuthorizationDetails
         """
 
-        self.payload['Action'] = GET_AUTHORIZATION_DETAILS
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = GET_AUTHORIZATION_DETAILS
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def close_authorization(self, closure_reason=''):
         """
         CloseAuthorization
         """
 
-        self.payload['Action'] = CLOSE_AUTHORIZATION
-        self.payload['ClosureReason'] = closure_reason
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = CLOSE_AUTHORIZATION
+        payload['ClosureReason'] = closure_reason
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def capture(self, amount, currency, capture_reference_id, note='', soft_descriptor=''):
         """
         Capture the payment
         """
 
-        self.payload['Action'] = CAPTURE
-        self.payload['CaptureReferenceId'] = capture_reference_id
-        self.payload['CaptureAmount.Amount'] = amount
-        self.payload['CaptureAmount.Currency'] = currency
-        self.payload['SellerCaptureNote'] = note
-        self.payload['SoftDescriptor'] = soft_descriptor
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = CAPTURE
+        payload['CaptureReferenceId'] = capture_reference_id
+        payload['CaptureAmount.Amount'] = amount
+        payload['CaptureAmount.Currency'] = currency
+        payload['SellerCaptureNote'] = note
+        payload['SoftDescriptor'] = soft_descriptor
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def refund(self, capture_id, refund_amount, currency, refund_reference_id, note='', soft_descriptor=''):
         """
         Refund the payment
         """
 
-        self.payload['Action'] = REFUND
-        self.payload['AmazonCaptureId'] = capture_id
-        self.payload['RefundAmount.Amount'] = refund_amount
-        self.payload['RefundAmount.Currency'] = currency
-        self.payload['RefundReferenceId'] = refund_reference_id
-        self.payload['SellerRefundNote'] = note
-        self.payload['SoftDescriptor'] = soft_descriptor
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = REFUND
+        payload['AmazonCaptureId'] = capture_id
+        payload['RefundAmount.Amount'] = refund_amount
+        payload['RefundAmount.Currency'] = currency
+        payload['RefundReferenceId'] = refund_reference_id
+        payload['SellerRefundNote'] = note
+        payload['SoftDescriptor'] = soft_descriptor
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def get_refund_details(self, refund_reference_id):
         """
         GetRefundDetails
         """
 
-        self.payload['Action'] = GET_REFUND_DETAILS
-        self.payload['RefundReferenceId'] = refund_reference_id
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = GET_REFUND_DETAILS
+        payload['RefundReferenceId'] = refund_reference_id
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
     def get_service_status(self):
         """
         GetServiceStatus
         """
 
-        self.payload['Action'] = GET_SERVICE_STATUS
-        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
-        self.payload['Signature'] = self._calculate_signature()
+        payload = self.payload_template.copy()
 
-        return requests.post(AMAZON_PAYMENTS_URI, data=self.payload)
+        payload['Action'] = GET_SERVICE_STATUS
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
+        payload['Signature'] = self._calculate_signature()
+
+        return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
 if __name__ == "__main__":
     gateway = Gateway('123')

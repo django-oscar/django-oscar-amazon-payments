@@ -50,5 +50,4 @@ class Facade(object):
 
     def get_shipping_address(self):
         response = self.gateway.get_order_reference_details()
-        import ipdb; ipdb.set_trace()
         return response.content

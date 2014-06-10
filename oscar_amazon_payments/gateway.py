@@ -46,7 +46,16 @@ class Gateway(object):
     """
 
     def __init__(self, amazon_order_reference_id):
-        self.self.amazon_order_reference_id = self.amazon_order_reference_id
+        self.amazon_order_reference_id = amazon_order_reference_id
+
+        self.payload = {
+            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
+            'AmazonOrderReferenceId': self.amazon_order_reference_id,
+            'SellerId': settings.AMAZON_SELLER_ID,
+            'SignatureMethod': 'HmacSHA256',
+            'SignatureVersion': 2,
+            'Version': '2013-01-01',
+        }
 
     def _calculate_signature(self, msg):
         sig = hmac.new(settings.AMAZON_SECRET_KEY, msg.encode('utf-8'), hashlib.sha256).digest()
@@ -70,20 +79,11 @@ class Gateway(object):
         self.amazon_order_reference_id is retrieved from the authenticate with amazon widget once the
         customer has authenticated
         """
+        self.payload['Action'] = GET_ORDER_REFERENCE
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': GET_ORDER_REFERENCE,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
-
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def set_order_reference_details(self, amount, currency, order_id, note=None):
         """
@@ -93,82 +93,50 @@ class Gateway(object):
         available.
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': SET_ORDER_REFERENCE,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'AmazonOrderReferenceAttributes.OrderTotal.Amount': amount,
-            'OrderReferenceAttributes.OrderTotal.CurrencyCode': currency,
-            'OrderReferenceAttributes.SellerNote': note,
-            'OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId': order_id,
-            'OrderReferenceAttributes.SellerOrderAttributes.StoreName': settings.AMAZON_STORE_NAME,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = SET_ORDER_REFERENCE
+        self.payload['AmazonOrderReferenceAttributes.OrderTotal.Amount'] = amount
+        self.payload['OrderReferenceAttributes.OrderTotal.CurrencyCode'] = currency
+        self.payload['OrderReferenceAttributes.SellerNote'] = note
+        self.payload['OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'] = order_id
+        self.payload['OrderReferenceAttributes.SellerOrderAttributes.StoreName'] = settings.AMAZON_STORE_NAME
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def confirm_order_reference(self):
         """
         ConfirmOrderReference
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': CONFIRM_ORDER_REFERENCE,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = CONFIRM_ORDER_REFERENCE
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def cancel_order_reference(self):
         """
         CancelOrderReference
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': CANCEL_ORDER_REFERENCE,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = CANCEL_ORDER_REFERENCE
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def close_order_reference(self, closure_reason=''):
         """
         CloseOrderReference
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': CLOSE_ORDER_REFERENCE,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'ClosureReason': closure_reason,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp,
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = CLOSE_ORDER_REFERENCE
+        self.payload['ClosureReason'] = closure_reason
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def async_auth(self, amount, currency, note='', capture_now='false', soft_descriptor=''):
         """
@@ -206,147 +174,92 @@ class Gateway(object):
         Completes the authorization request
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': AUTHORIZE,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'AuthorizationAmount.Amount': amount,
-            'AuthorizationAmount.Currency': currency,
-            'AuthorizationReferenceId': authorization_reference_id,
-            'SellerAuthorizationNote': note,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'TransactionTimeout': transaction_timeout,
-            'CaptureNow': capture_now,
-            'SoftDescriptor': soft_descriptor,
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = AUTHORIZE,
+        self.payload['AuthorizationAmount.Amount'] = amount
+        self.payload['AuthorizationAmount.Currency'] = currency
+        self.payload['AuthorizationReferenceId'] = authorization_reference_id
+        self.payload['SellerAuthorizationNote'] = note
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['TransactionTimeout'] = transaction_timeout
+        self.payload['CaptureNow'] = capture_now
+        self.payload['SoftDescriptor'] = soft_descriptor
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def get_authorization_details(self):
         """
         GetAuthorizationDetails
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': GET_AUTHORIZATION_DETAILS,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = GET_AUTHORIZATION_DETAILS
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def close_authorization(self, closure_reason=''):
         """
         CloseAuthorization
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': CLOSE_AUTHORIZATION,
-            'AmazonOrderReferenceId': self.amazon_order_reference_id,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'ClosureReason': closure_reason,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = CLOSE_AUTHORIZATION
+        self.payload['ClosureReason'] = closure_reason
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def capture(self, amount, currency, capture_reference_id, note='', soft_descriptor=''):
         """
         Capture the payment
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': CAPTURE,
-            'AmazonAuthorizationId': self.amazon_order_reference_id,
-            'CaptureReferenceId': capture_reference_id,
-            'CaptureAmount.Amount': amount,
-            'CaptureAmount.Currency': currency,
-            'SellerCaptureNote': note,
-            'SoftDescriptor': soft_descriptor,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = CAPTURE
+        self.payload['CaptureReferenceId'] = capture_reference_id
+        self.payload['CaptureAmount.Amount'] = amount
+        self.payload['CaptureAmount.Currency'] = currency
+        self.payload['SellerCaptureNote'] = note
+        self.payload['SoftDescriptor'] = soft_descriptor
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def refund(self, capture_id, refund_amount, currency, refund_reference_id, note='', soft_descriptor=''):
         """
         Refund the payment
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': REFUND,
-            'AmazonCaptureId': capture_id,
-            'RefundAmount.Amount': refund_amount,
-            'RefundAmount.Currency': currency,
-            'RefundReferenceId': refund_reference_id,
-            'SellerRefundNote': note,
-            'SoftDescriptor': soft_descriptor,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = REFUND
+        self.payload['AmazonCaptureId'] = capture_id
+        self.payload['RefundAmount.Amount'] = refund_amount
+        self.payload['RefundAmount.Currency'] = currency
+        self.payload['RefundReferenceId'] = refund_reference_id
+        self.payload['SellerRefundNote'] = note
+        self.payload['SoftDescriptor'] = soft_descriptor
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def get_refund_details(self, refund_reference_id):
         """
         GetRefundDetails
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': GET_REFUND_DETAILS,
-            'RefundReferenceId': refund_reference_id,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = GET_REFUND_DETAILS
+        self.payload['RefundReferenceId'] = refund_reference_id
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)
 
     def get_service_status(self):
         """
         GetServiceStatus
         """
 
-        payload = {
-            'AWSAccessKeyId': settings.AMAZON_ACCESS_KEY,
-            'Action': GET_SERVICE_STATUS,
-            'SellerId': settings.AMAZON_SELLER_ID,
-            'SignatureMethod': 'HmacSHA256',
-            'SignatureVersion': 2,
-            'Timestamp': self._get_urlencoded_timestamp(),
-            'Version': '2013-01-01',
-            'Signature': self._calculate_signature(),
-        }
+        self.payload['Action'] = GET_SERVICE_STATUS
+        self.payload['Timestamp'] = self._get_urlencoded_timestamp()
+        self.payload['Signature'] = self._calculate_signature()
 
-        return requests.post(settings.AMAZON_PAYMENTS_URL, data=payload)
+        return requests.post(settings.AMAZON_PAYMENTS_URL, data=self.payload)

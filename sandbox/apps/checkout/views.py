@@ -94,6 +94,11 @@ class ShippingMethodView(OscarShippingMethodView):
         # pre-conditions as they do more than run a test and then raise an
         # exception if it fails.
 
+        facade = Facade(request.GET.get('reference_id', None))
+        address = facade.get_shipping_address()
+
+        self.checkout_session.ship_to_new_address(address)
+
         # Check that shipping is required at all
         if not request.basket.is_shipping_required():
             # No shipping required - we store a special code to indicate so.

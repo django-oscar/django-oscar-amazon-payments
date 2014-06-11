@@ -34,6 +34,9 @@ class Facade(object):
         pass
 
     def record_txn(self, order_number):
+        """
+        This method records the transaction details in the database for auditing
+        """
         OrderTransaction.objects.create(
             order_number=order_number
         )
@@ -48,8 +51,23 @@ class Facade(object):
         pass
 
     def get_status(self):
+        """
+        Get the current service status of the amazon payments API
+
+        Returns:
+
+        GREEN : Service is operating normally
+        GREEN_I: Service is operating normally, more info provided
+        YELLOW: The service is experience higher than normal error rates or degraded performance
+        RED; Service is unavailable
+
+        In any case other than GREEN, call get_status_with_info for more information about the service status
+        """
         response = self.gateway.get_service_status()
         return xmlutils.get_status(response.content)
+
+    def get_status_with_info(self):
+        pass
 
     def get_shipping_address(self):
         """
@@ -66,4 +84,7 @@ class Facade(object):
         return shipping_address
 
     def _generate_authorization_reference_id(self):
+        """
+        Generates an authorization reference id, this will be saved in the database transaction table
+        """
         return ''.join([random.choice(string.ascii_letters) for n in xrange(30)])

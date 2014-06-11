@@ -1,6 +1,11 @@
 {% extends "checkout/checkout.html" %}
 {% load i18n %}
 
+{% block extrahead %}
+    {{ block.super }}
+    <script type='text/javascript' src='https://static-eu.payments-amazon.com/OffAmazonPayments/uk/sandbox/js/Widgets.js?sellerId={{ seller_id }}'>
+    </script>
+{% endblock %}
 
 {% block title %}
     {% trans "Shipping address" %} | {{ block.super }}
@@ -21,7 +26,7 @@
     <div id="addressBookWidgetDiv">
     </div>
     <br>
-    <a class="btn btn-large btn-primary" href="{% url 'checkout:shipping-details' %}?reference_id={{ amazon_order_reference_id }}">Proceed to Payment Options</a>
+    <a class="btn btn-large btn-primary" href="{% url 'checkout:payment-details' %}?reference_id={{ amazon_order_reference_id }}">Proceed to Payment Options</a>
 {% endblock shipping_address %}
 
 {% block shipping_method %}{% endblock %}

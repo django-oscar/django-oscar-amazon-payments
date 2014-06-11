@@ -1,8 +1,33 @@
 {% extends 'oscar/checkout/payment_details.html' %}
 {% load i18n %}
+{% block extrahead %}
+    {{ block.super }}
+    <script type='text/javascript' src='https://static-eu.payments-amazon.com/OffAmazonPayments/uk/sandbox/js/Widgets.js?sellerId={{ seller_id }}'>
+    </script>
+{% endblock %}
 
 {% block payment_details_content %}
-    <div id="payWithAmazonDiv">
-        <img src="https://payments-sandbox.amazon.co.uk/gp/widgets/button?sellerId={{ seller id}}&size=large&color=orange" style="cursor: pointer;"/>
+    <div id="walletWidgetDiv">
     </div>
+    <br>
+    <a class="btn btn-large btn-primary" href="{% url 'checkout:preview' %}?reference_id={{ amazon_order_reference_id }}">Confirm Payment</a>
+{% endblock %}
+{% block extrascripts %}
+    <script>
+        new OffAmazonPayments.Widgets.Wallet({
+            sellerId: '{{ seller_id }}',
+            amazonOrderReferenceId: '{{ amazon_order_reference_id }}',
+            // amazonOrderReferenceId obtained from Button widget
+            design: {
+                size : {width:'400px', height:'260px'}
+            },
+            onPaymentSelect: function(orderReference) {
+                // Replace this code with the action that you want to perform
+                // after the payment method is selected.
+            },
+            onError: function(error) {
+                // your error handling code
+            }
+        }).bind("walletWidgetDiv");
+    </script>
 {% endblock %}

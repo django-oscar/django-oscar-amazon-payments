@@ -3,6 +3,8 @@ from django.core.urlresolvers import reverse
 from django.contrib import messages
 from django.conf import settings
 from django.utils.translation import ugettext as _
+from django.views import generic
+from django.forms.models import model_to_dict
 
 from oscar.apps.checkout.views import ShippingAddressView as OscarShippingAddressView, PaymentDetailsView as OscarPaymentDetailsView
 from oscar.apps.checkout.views import ShippingMethodView as OscarShippingMethodView
@@ -18,6 +20,10 @@ class PaymentDetailsView(OscarPaymentDetailsView):
         # Add bankcard form to the template context
         ctx = super(PaymentDetailsView, self).get_context_data(**kwargs)
         ctx['seller_id'] = settings.AMAZON_SELLER_ID
+        reference_id = self.request.GET.get('reference_id', None)
+        if reference_id is None:
+            raise http.Http404
+        ctx['amazon_order_reference_id'] = reference_id
         return ctx
 
     def handle_payment_details_submission(self, request):
@@ -75,7 +81,8 @@ class PaymentDetailsView(OscarPaymentDetailsView):
         self.add_payment_event('pre-auth', total.incl_tax)
 
 
-class ShippingAddressView(OscarShippingAddressView):
+class ShippingAddressView(generic.TemplateView):
+    template_name = 'checkout/shipping_address.html'
 
     def get_context_data(self, *args, **kwargs):
         ctx = super(ShippingAddressView, self).get_context_data(*args, **kwargs)
@@ -93,11 +100,14 @@ class ShippingMethodView(OscarShippingMethodView):
         # These pre-conditions can't easily be factored out into the normal
         # pre-conditions as they do more than run a test and then raise an
         # exception if it fails.
+        self.reference_id = self.request.GET.get('reference_id')
+        if self.reference_id:
+            facade = Facade(self.reference_id)
+            address = facade.get_shipping_address()
+            address_fields = model_to_dict(address)
+            address_fields.pop("country", None)
 
-        facade = Facade(request.GET.get('reference_id', None))
-        address = facade.get_shipping_address()
-
-        self.checkout_session.ship_to_new_address(address)
+            self.checkout_session.ship_to_new_address(address_fields)
 
         # Check that shipping is required at all
         if not request.basket.is_shipping_required():
@@ -131,3 +141,6 @@ class ShippingMethodView(OscarShippingMethodView):
         # Must be more than one available shipping method, we present them to
         # the user to make a choice.
         return super(ShippingMethodView, self).get(request, *args, **kwargs)
+
+    def get_success_response(self):
+        return http.HttpResponseRedirect('{}?reference_id={}'.format(reverse('checkout:payment-details'), self.reference_id))

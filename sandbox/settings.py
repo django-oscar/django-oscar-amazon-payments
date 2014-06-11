@@ -205,6 +205,7 @@ INSTALLED_APPS = [
     'oscar_amazon_payments',
     'compressor',
     'south',
+    'django_extensions',
 ]
 from oscar import get_core_apps
 INSTALLED_APPS += get_core_apps()

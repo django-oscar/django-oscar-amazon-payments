@@ -1,30 +1,93 @@
-{% extends 'oscar/checkout/preview.html' %}
-{% load currency_filters %}
+{% extends "checkout/checkout.html" %}
 {% load i18n %}
 
-{% block payment_method %}
-    <div class="span6">
-    <h3>{% trans "Payment" %}</h3>
-    <div class="well well-success" data-behaviours="match-height">
-
-        <h4>Bankcard</h4>
-        <p>{% blocktrans with amount=order_total.incl_tax|currency %}
-            {{ amount }} will be debited from your bankcard:
-        {% endblocktrans %}</p>
-        {% with bankcard=bankcard_form.bankcard %}
-            <p>
-            {% trans "Card type" %}: {{ bankcard.card_type }} <br/>
-            {% trans "Card number" %}: {{ bankcard.obfuscated_number }} <br/>
-            {% trans "Expiry month" %}: {{ bankcard.expiry_month }}</p>
-        {% endwith %}
-
-        <div class="alert-actions">
-            <a href="{% url 'checkout:payment-details' %}" class="btn">{% trans "Change payment details" %}</a>
-        </div>
-    </div>
-</div>
+{% block extrahead %}
+    {{ block.super }}
+    <script type='text/javascript' src='https://static-eu.payments-amazon.com/OffAmazonPayments/uk/sandbox/js/Widgets.js?sellerId={{ seller_id }}'>
+    </script>
 {% endblock %}
 
-{% block hiddenforms %}
-    {{ bankcard_form.as_p }}
+{% block title %}
+    {% trans "Order preview" %} | {{ block.super }}
+{% endblock %}
+
+{% block checkout_nav %}
+    {% include 'checkout/nav.html' with step=4 %}
+{% endblock %}
+
+{% block checkout_title %}
+    {% trans "Preview order" %}
+{% endblock %}
+
+{% block shipping_address %}
+    <div style="float: left">
+        <h3>Shipping</h3>
+        <div id="readOnlyAddressBookWidgetDiv">
+        </div>
+    </div>
+{% endblock %}
+<br>
+{% block payment_method %}
+    <div style="float: right">
+        <h3>Payment</h3>
+        <div id="readOnlyWalletWidgetDiv">
+        </div>
+    </div>
+{% endblock %}
+
+{% block place_order %}
+    <form method="post" action="{% url 'checkout:preview' %}" id="place-order-form">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="place_order" />
+
+        {% comment %}
+            When submitting sensitive data on the payment details page (eg a bankcard)
+            we don't want to save the data and so we pass the bound form to the preview
+            template and render it in a hidden div.  Then the payment information will
+            get re-submitted when the user confirms the order.
+        {% endcomment %}
+        <div style="display:none">
+            {% block hiddenforms %}{% endblock %}
+        </div>
+
+        <div class="form-actions clearfix">
+            <div class="row-fluid">
+                <div class="span3 offset9">
+                     <button id='place-order' type="submit" class="btn btn-primary btn-large btn-block js-disable-on-click" data-loading-text="{% trans 'Submitting...' %}">{% trans "Place order" %}</button>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock place_order %}
+
+{% block extrascripts %}
+    {{ block.super }}
+    <script>
+        new OffAmazonPayments.Widgets.AddressBook({
+            sellerId: '{{ seller_id }}',
+            amazonOrderReferenceId: '{{ amazon_order_reference_id }}',
+            // amazonOrderReferenceId obtained from Button widget
+            displayMode: "Read",
+            design: {
+                size : {width:'400px', height:'185px'}
+            },
+            onError: function(error) {
+                // your error handling code
+            }
+        }).bind("readOnlyAddressBookWidgetDiv");
+    </script>
+    <script>
+        new OffAmazonPayments.Widgets.Wallet({
+            sellerId: '{{ seller_id }}',
+            amazonOrderReferenceId: '{{ amazon_order_reference_id }}',
+            // amazonOrderReferenceId obtained from Button widget
+            displayMode: "Read",
+            design: {
+                size : {width:'400px', height:'185px'}
+            },
+            onError: function(error) {
+                // your error handling code
+            }
+        }).bind("readOnlyWalletWidgetDiv");
+    </script>
 {% endblock %}

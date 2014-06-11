@@ -9,6 +9,7 @@ detox==0.9.3
 WebTest==2.0.15
 pinocchio==0.4.1
 requests==2.3.0
+BeautifulSoup==3.2.1
 
 # Development
 django-extensions==1.3.3

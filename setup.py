@@ -20,7 +20,8 @@ setup(
     include_package_data=True,
     install_requires=[
         'requests>=2.3.0',
-        'django-localflavor'],
+        'django-localflavor',
+        'BeautifulSoup==3.2.1'],
     extras_require={
         'oscar': ["django-oscar>=0.6"]
     },

@@ -6,27 +6,23 @@ from optparse import OptionParser
 from django.conf import settings
 
 if not settings.configured:
-    extra_settings = {
-        #TODO - amazon settings
-    }
-    # To specify integration settings (which include passwords, hence why they
-    # are not committed), create an integration.py module.
+    amazon_settings = {}
     try:
         from integration import *
     except ImportError:
-        extra_settings.update({
+        amazon_settings.update({
             # TODO - amazon private settings
         })
     else:
         for key, value in locals().items():
             if key.startswith('AMAZON_PAYMENTS'):
-                extra_settings[key] = value
+                amazon_settings[key] = value
 
     from oscar.defaults import *
     for key, value in locals().items():
         if key.startswith('OSCAR'):
-            extra_settings[key] = value
-    extra_settings['OSCAR_ALLOW_ANON_CHECKOUT'] = True
+            amazon_settings[key] = value
+    amazon_settings['OSCAR_ALLOW_ANON_CHECKOUT'] = True
 
     from oscar import get_core_apps, OSCAR_MAIN_TEMPLATE_DIR
 
@@ -86,7 +82,7 @@ if not settings.configured:
         STATIC_URL='/',
         STATIC_ROOT='/static/',
         NOSE_ARGS=['-s', '--with-spec'],
-        **extra_settings
+        **amazon_settings
     )
 
 from django_nose import NoseTestSuiteRunner

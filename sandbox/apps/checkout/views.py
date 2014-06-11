@@ -19,7 +19,7 @@ class PaymentDetailsView(OscarPaymentDetailsView):
     def get_context_data(self, **kwargs):
         # Add bankcard form to the template context
         ctx = super(PaymentDetailsView, self).get_context_data(**kwargs)
-        ctx['seller_id'] = settings.AMAZON_SELLER_ID
+        ctx['seller_id'] = settings.AMAZON_PAYMENTS_SELLER_ID
         reference_id = self.request.GET.get('reference_id', None)
         if reference_id is None:
             raise http.Http404
@@ -86,7 +86,7 @@ class ShippingAddressView(generic.TemplateView):
 
     def get_context_data(self, *args, **kwargs):
         ctx = super(ShippingAddressView, self).get_context_data(*args, **kwargs)
-        ctx['seller_id'] = settings.AMAZON_SELLER_ID
+        ctx['seller_id'] = settings.AMAZON_PAYMENTS_SELLER_ID
         reference_id = self.request.GET.get('reference_id', None)
         if reference_id is None:
             raise http.Http404

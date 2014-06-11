@@ -129,7 +129,7 @@ class Gateway(object):
         payload['OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'] = order_id
         payload['OrderReferenceAttributes.SellerOrderAttributes.StoreName'] = settings.AMAZON_STORE_NAME
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -142,7 +142,7 @@ class Gateway(object):
 
         payload['Action'] = CONFIRM_ORDER_REFERENCE
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -155,7 +155,7 @@ class Gateway(object):
 
         payload['Action'] = CANCEL_ORDER_REFERENCE
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -169,7 +169,7 @@ class Gateway(object):
         payload['Action'] = CLOSE_ORDER_REFERENCE
         payload['ClosureReason'] = closure_reason
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -220,7 +220,7 @@ class Gateway(object):
         payload['TransactionTimeout'] = transaction_timeout
         payload['CaptureNow'] = capture_now
         payload['SoftDescriptor'] = soft_descriptor
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -232,7 +232,7 @@ class Gateway(object):
         payload = self.payload_template.copy()
 
         payload['Action'] = GET_AUTHORIZATION_DETAILS
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -245,7 +245,7 @@ class Gateway(object):
 
         payload['Action'] = CLOSE_AUTHORIZATION
         payload['ClosureReason'] = closure_reason
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -263,7 +263,7 @@ class Gateway(object):
         payload['SellerCaptureNote'] = note
         payload['SoftDescriptor'] = soft_descriptor
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -282,7 +282,7 @@ class Gateway(object):
         payload['SellerRefundNote'] = note
         payload['SoftDescriptor'] = soft_descriptor
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -296,7 +296,7 @@ class Gateway(object):
         payload['Action'] = GET_REFUND_DETAILS
         payload['RefundReferenceId'] = refund_reference_id
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
 
@@ -309,10 +309,6 @@ class Gateway(object):
 
         payload['Action'] = GET_SERVICE_STATUS
         payload['Timestamp'] = self._get_urlencoded_timestamp()
-        payload['Signature'] = self._calculate_signature()
+        payload['Signature'] = self._calculate_signature(payload)
 
         return requests.post(AMAZON_PAYMENTS_URI, data=payload)
-
-if __name__ == "__main__":
-    gateway = Gateway('123')
-    print gateway._get_urlencoded_timestamp()

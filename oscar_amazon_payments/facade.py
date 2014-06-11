@@ -1,16 +1,16 @@
 import random
 import string
 
+import xmlutils
+
 from django.conf import settings
 from django.utils.translation import ugettext_lazy as _
-from oscar.apps.payment.exceptions import UnableToTakePayment, InvalidGatewayRequestError
 
+from oscar.apps.payment.exceptions import UnableToTakePayment, InvalidGatewayRequestError
 from oscar_amazon_payments import gateway
 from oscar_amazon_payments.models import OrderTransaction
 
 from oscar.core.loading import get_model
-
-from BeautifulSoup import BeautifulSoup as BS
 
 ShippingAddress = get_model('order', 'ShippingAddress')
 Order = get_model('order', 'Order')
@@ -49,19 +49,21 @@ class Facade(object):
 
     def get_status(self):
         response = self.gateway.get_service_status()
-        return response
+        return xmlutils.get_status(response.content)
+
+    def get_shipping_address(self):
+        """
+        TODO - if we have already fetched the shipping address, get it from the database and not amazon
+
+        but if we have only fetched a partial address, get the rest from amazon and update the database
+        """
+        response = self.gateway.get_order_reference_details()
+        self.handle_response(response)
+        address = xmlutils.get_partial_address(response.content)
+        country = Country.objects.get(iso_3166_1_a3=address['country_code'])
+        shipping_address = ShippingAddress(line1='', state=address['city'], postcode=address['post_code'], country=country)
+        shipping_address.save()
+        return shipping_address
 
     def _generate_authorization_reference_id(self):
         return ''.join([random.choice(string.ascii_letters) for n in xrange(30)])
-
-    def get_shipping_address(self):
-        response = self.gateway.get_order_reference_details()
-        self.handle_response(response)
-        response_xml = BS(response.content)
-        address_xml = response_xml.find('physicaldestination')
-        post_code = address_xml.find('postalcode').string
-        city = address_xml.find('city').string
-        country = Country.objects.get(iso_3166_1_a3=address_xml.find('countrycode').string)
-        shipping_address = ShippingAddress(line1='', state=city, postcode=post_code, country=country)
-        shipping_address.save()
-        return shipping_address

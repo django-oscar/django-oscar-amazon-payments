@@ -1,4 +1,5 @@
 from mock import Mock
+from decimal import Decimal as D
 
 from django.test import TestCase
 
@@ -41,7 +42,9 @@ class TestGateway(TestCase):
         pass
 
     def test_sync_auth(self):
-        pass
+        self.gateway._do_request = Mock(return_value=mock_responses.AUTHORIZE_ORDER_RESPONSE_XML)
+        auth_response = self.gateway.sync_auth(D('2.99'), 'GBP', '1234')
+        self.assertEqual(auth_response, mock_responses.AUTHORIZE_ORDER_RESPONSE_XML)
 
     def test_authorization_details(self):
         pass

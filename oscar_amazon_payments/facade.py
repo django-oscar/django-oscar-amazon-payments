@@ -61,8 +61,32 @@ class Facade(object):
         self.handle_response(response)
         return xmlutils.process_order_details_confirmation(response.content)
 
-    def fulfill_transaction(self):
-        pass
+    def fulfill_transaction(self, amount, currency, capture_now='false', auth_note=None, capture_note=None, auth_soft_desc=None, capture_soft_desc=None):
+        # authorize transaction
+        amount = str(amount)
+        # TODO generate and store auth ref id
+        authorization_reference_id = '1234'
+        response = self.gateway.sync_auth(amount, currency, authorization_reference_id, capture_now, auth_note, auth_soft_desc)
+        self.handle_response(response)
+        auth_resp = xmlutils.process_sync_auth(response.content)
+
+        if not auth_resp:
+            raise UnableToTakePayment()
+
+        # get authorization details
+        response = self.gateway.get_authorization_details()
+        self.handle_response(response)
+        auth_details_resp = xmlutils.process_auth_details(response.content)
+
+        if not auth_details_resp:
+            raise UnableToTakePayment()
+
+        # Capture
+        capture_reference_id = '1234'
+        response = self.gateway.capture(amount, currency, capture_reference_id, capture_note, capture_soft_desc)
+        self.handle_response(response)
+        capture_resp = xmlutils.process_capture(response.content)
+        return capture_resp
 
     def refund_transaction(self):
         pass

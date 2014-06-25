@@ -174,23 +174,23 @@ class Gateway(object):
 
         return self._do_request(payload)
 
-    def async_auth(self, amount, currency, note='', capture_now='false', soft_descriptor=''):
+    def async_auth(self, amount, currency, authorization_reference_id, note=None, capture_now='false', soft_descriptor=None):
         """
         Asynchronous authorization
         """
-        # Get the amazon async timeout value, defaults to sizty minutes
+        # Get the amazon async timeout value, defaults to sixty minutes
         transaction_timeout = getattr(settings, 'AMAZON_ASYNCHRONOUS_TIMEOUT', 60)
         return self._auth(
             amount,
             currency,
-            self.amazon_order_reference_id,
+            authorization_reference_id,
             note,
             transaction_timeout,
             capture_now,
             soft_descriptor
         )
 
-    def sync_auth(self, amount, currency, note='', capture_now='false', soft_descriptor=''):
+    def sync_auth(self, authorization_reference_id, amount, currency, note=None, capture_now='false', soft_descriptor=None):
         """
         Synchronous authorization
         """
@@ -198,14 +198,14 @@ class Gateway(object):
         return self._auth(
             amount,
             currency,
-            self.amazon_order_reference_id,
+            authorization_reference_id,
             note,
             transaction_timeout,
             capture_now,
             soft_descriptor
         )
 
-    def _auth(self, amount, currency, authorization_reference_id, note, transaction_timeout, capture_now, soft_descriptor):
+    def _auth(self, amount, currency, authorization_reference_id, transaction_timeout, capture_now, note=None, soft_descriptor=None):
         """
         Completes the authorization request
         """
@@ -214,13 +214,15 @@ class Gateway(object):
 
         payload['Action'] = AUTHORIZE,
         payload['AuthorizationAmount.Amount'] = amount
-        payload['AuthorizationAmount.Currency'] = currency
+        payload['AuthorizationAmount.CurrencyCode'] = currency
         payload['AuthorizationReferenceId'] = authorization_reference_id
-        payload['SellerAuthorizationNote'] = note
+        if note:
+            payload['SellerAuthorizationNote'] = note
         payload['Timestamp'] = self._get_urlencoded_timestamp()
         payload['TransactionTimeout'] = transaction_timeout
         payload['CaptureNow'] = capture_now
-        payload['SoftDescriptor'] = soft_descriptor
+        if soft_descriptor:
+            payload['SoftDescriptor'] = soft_descriptor
 
         return self._do_request(payload)
 
@@ -232,6 +234,7 @@ class Gateway(object):
         payload = self.payload_template.copy()
 
         payload['Action'] = GET_AUTHORIZATION_DETAILS
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
 
         return self._do_request(payload)
 
@@ -244,6 +247,7 @@ class Gateway(object):
 
         payload['Action'] = CLOSE_AUTHORIZATION
         payload['ClosureReason'] = closure_reason
+        payload['Timestamp'] = self._get_urlencoded_timestamp()
 
         return self._do_request(payload)
 

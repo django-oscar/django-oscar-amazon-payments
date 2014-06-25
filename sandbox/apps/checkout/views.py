@@ -49,9 +49,7 @@ class PaymentDetailsView(OscarPaymentDetailsView):
             return http.HttpBadRequest()
         self.facade = Facade(self.reference_id)
         confirm_order_response = self.facade.confirm_order_details()
-        import ipdb; ipdb.set_trace()
-        return self.facade.fulfill_transaction()
-
+        return self.facade.fulfill_transaction(self.request.basket.total_incl_tax, settings.AMAZON_PAYMENTS_CURRENCY)
 
 
 class ShippingAddressView(generic.TemplateView):

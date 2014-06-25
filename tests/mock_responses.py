@@ -95,6 +95,41 @@ CONFIRM_ORDER_RESPONSE_XML = (
     '</ConfirmOrderReferenceResponse>'
 )
 
+AUTHORIZE_ORDER_RESPONSE_XML = (
+    '<AuthorizeResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">' +
+    '<AuthorizeResult>' +
+    '<AuthorizationDetails>' +
+    '<ExpirationTimestamp>2014-07-25T13:49:44.889Z</ExpirationTimestamp>' +
+    '<AuthorizationStatus>' +
+    '<LastUpdateTimestamp>2014-06-25T13:49:44.889Z</LastUpdateTimestamp>' +
+    '<State>Pending</State>' +
+    '</AuthorizationStatus>' +
+    '<AuthorizationAmount>' +
+    '<Amount>2.99</Amount>' +
+    '<CurrencyCode>GBP</CurrencyCode>' +
+    '</AuthorizationAmount>' +
+    '<CapturedAmount>' +
+    '<Amount>0</Amount>' +
+    '<CurrencyCode>GBP</CurrencyCode>' +
+    '</CapturedAmount>' +
+    '<IdList/>' +
+    '<AmazonAuthorizationId>S02-6489226-4064680-A069514</AmazonAuthorizationId>' +
+    '<SellerAuthorizationNote/>' +
+    '<CaptureNow>false</CaptureNow>' +
+    '<AuthorizationReferenceId>S02-3872763-0323389</AuthorizationReferenceId>' +
+    '<CreationTimestamp>2014-06-25T13:49:44.889Z</CreationTimestamp>' +
+    '<AuthorizationFee>' +
+    '<Amount>0.00</Amount>' +
+    '<CurrencyCode>GBP</CurrencyCode>' +
+    '</AuthorizationFee>' +
+    '</AuthorizationDetails>' +
+    '</AuthorizeResult>' +
+    '<ResponseMetadata>' +
+    '<RequestId>f2f44ba9-bc00-4366-91d2-1c73ca7baf07</RequestId>' +
+    '</ResponseMetadata>' +
+    '</AuthorizeResponse>'
+)
+
 INVALID_SIGNATURE_RESPONSE = (
     '<?xml version="1.0"?>' +
     '<ErrorResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">' +

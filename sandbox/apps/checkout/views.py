@@ -17,10 +17,21 @@ class PaymentDetailsView(OscarPaymentDetailsView):
     def get(self, *args, **kwargs):
         self.reference_id = self.request.GET.get('reference_id')
         if not self.reference_id:
-            raise http.Http404
+            return http.HttpBadRequest()
         self.facade = Facade(self.reference_id)
-        order_details_response = self.facade.set_order_details(str(self.request.basket.total_incl_tax))
+        if not self.preview:
+            order_details_response = self.facade.set_order_details(str(self.request.basket.total_incl_tax))
         return super(PaymentDetailsView, self).get(*args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        # Posting to payment-details isn't the right thing to do.  Form
+        # submissions should use the preview URL.
+        if not self.preview:
+            return http.HttpBadRequest()
+        if request.POST.get('action', '') == 'place_order':
+            return self.handle_place_order_submission(request)
+        else:
+            return http.HttpBadRequest()
 
     def get_context_data(self, **kwargs):
         # Add bankcard form to the template context
@@ -31,6 +42,16 @@ class PaymentDetailsView(OscarPaymentDetailsView):
             raise http.Http404
         ctx['amazon_order_reference_id'] = reference_id
         return ctx
+
+    def handle_place_order_submission(self, request):
+        self.reference_id = self.request.GET.get('reference_id')
+        if not self.reference_id:
+            return http.HttpBadRequest()
+        self.facade = Facade(self.reference_id)
+        confirm_order_response = self.facade.confirm_order_details()
+        import ipdb; ipdb.set_trace()
+        return self.facade.fulfill_transaction()
+
 
 
 class ShippingAddressView(generic.TemplateView):

@@ -49,10 +49,19 @@ class Facade(object):
         """
         response = self.gateway.set_order_reference_details(amount, currency, self.order_id, note)
         self.handle_response(response)
-        order_details_response = xmlutils.process_order_details(response.content)
-        return order_details_response
+        return xmlutils.process_order_details(response.content)
 
-    def fulfill_transaction(self, amount):
+    def confirm_order_details(self):
+        """
+        Confirms the order details with amazon
+
+        This method triggers the sending of the amazon confirmation email to the customer
+        """
+        response = self.gateway.confirm_order_reference()
+        self.handle_response(response)
+        return xmlutils.process_order_details_confirmation(response.content)
+
+    def fulfill_transaction(self):
         pass
 
     def refund_transaction(self):

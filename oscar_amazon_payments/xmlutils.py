@@ -32,3 +32,6 @@ def get_status(xml):
 def process_order_details(xml):
     # TODO flush out stub
     return xml
+
+def process_order_details_confirmation(xml):
+    return xml

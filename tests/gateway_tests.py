@@ -27,7 +27,9 @@ class TestGateway(TestCase):
         self.assertEqual(set_ref_details, mock_responses.SET_ORDER_REFERENCE_DETAILS_RESPONSE_XML)
 
     def test_confirm_order_reference(self):
-        pass
+        self.gateway._do_request = Mock(return_value=mock_responses.CONFIRM_ORDER_RESPONSE_XML)
+        confirm_response = self.gateway.confirm_order_reference()
+        self.assertEqual(confirm_response, mock_responses.CONFIRM_ORDER_RESPONSE_XML)
 
     def test_cancel_order_reference(self):
         pass

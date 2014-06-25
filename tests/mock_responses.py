@@ -87,6 +87,14 @@ SET_ORDER_REFERENCE_DETAILS_RESPONSE_XML = (
     '</SetOrderReferenceDetailsResponse>'
 )
 
+CONFIRM_ORDER_RESPONSE_XML = (
+    '<ConfirmOrderReferenceResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">' +
+    '<ResponseMetadata>' +
+    '<RequestId>41474366-b298-494c-830c-9c14a1240a81</RequestId>' +
+    '</ResponseMetadata>' +
+    '</ConfirmOrderReferenceResponse>'
+)
+
 INVALID_SIGNATURE_RESPONSE = (
     '<?xml version="1.0"?>' +
     '<ErrorResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">' +

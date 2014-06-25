@@ -36,7 +36,7 @@
 {% endblock %}
 
 {% block place_order %}
-    <form method="post" action="{% url 'checkout:preview' %}" id="place-order-form">
+<form method="post" action="{% url 'checkout:preview' %}?reference_id={{ amazon_order_reference_id }}" id="place-order-form">
         {% csrf_token %}
         <input type="hidden" name="action" value="place_order" />
 

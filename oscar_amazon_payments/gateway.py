@@ -82,7 +82,7 @@ class Gateway(object):
         key_list = payload.keys()
         key_list.sort()
         values = map(payload.get, key_list)
-        url_string = urllib.urlencode(zip(key_list, values))
+        url_string = urllib.urlencode(zip(key_list, values)).replace('+', '%20')
         canonical_form += url_string
         return canonical_form
 
@@ -126,9 +126,10 @@ class Gateway(object):
         payload = self.payload_template.copy()
 
         payload['Action'] = SET_ORDER_REFERENCE
-        payload['AmazonOrderReferenceAttributes.OrderTotal.Amount'] = amount
+        payload['OrderReferenceAttributes.OrderTotal.Amount'] = amount
         payload['OrderReferenceAttributes.OrderTotal.CurrencyCode'] = currency
-        payload['OrderReferenceAttributes.SellerNote'] = note
+        if note:
+            payload['OrderReferenceAttributes.SellerNote'] = note
         payload['OrderReferenceAttributes.SellerOrderAttributes.SellerOrderId'] = order_id
         payload['OrderReferenceAttributes.SellerOrderAttributes.StoreName'] = settings.AMAZON_PAYMENTS_STORE_NAME
         payload['Timestamp'] = self._get_urlencoded_timestamp()

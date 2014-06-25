@@ -20,3 +20,8 @@ def get_status(xml):
     """
     response_xml = BS(xml)
     return response_xml.find('status').string
+
+
+def process_order_details(xml):
+    # TODO flush out stub
+    return xml

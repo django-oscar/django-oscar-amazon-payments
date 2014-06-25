@@ -257,6 +257,7 @@ OSCAR_DASHBOARD_NAVIGATION.append(
         ]
     })
 
+AMAZON_PAYMENTS_CURRENCY = 'GBP'
 
 try:
     from integration import *

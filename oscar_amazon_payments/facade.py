@@ -25,6 +25,8 @@ class Facade(object):
 
     def __init__(self, amazon_order_reference_id):
         self.gateway = gateway.Gateway(amazon_order_reference_id)
+        #TODO - generate real order id
+        self.order_id = '1234'
 
     def handle_response(self, response):
         """
@@ -41,7 +43,16 @@ class Facade(object):
             order_number=order_number
         )
 
-    def fulfill_transaction(self):
+    def set_order_details(self, amount, currency=settings.AMAZON_PAYMENTS_CURRENCY, note=None):
+        """
+        Set the amount and currency for the order
+        """
+        response = self.gateway.set_order_reference_details(amount, currency, self.order_id, note)
+        self.handle_response(response)
+        order_details_response = xmlutils.process_order_details(response.content)
+        return order_details_response
+
+    def fulfill_transaction(self, amount):
         pass
 
     def refund_transaction(self):

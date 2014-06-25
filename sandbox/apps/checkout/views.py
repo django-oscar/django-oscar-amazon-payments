@@ -16,6 +16,14 @@ from oscar_amazon_payments.facade import Facade
 
 class PaymentDetailsView(OscarPaymentDetailsView):
 
+    def get(self, *args, **kwargs):
+        self.reference_id = self.request.GET.get('reference_id')
+        if not self.reference_id:
+            raise http.Http404
+        self.facade = Facade(self.reference_id)
+        order_details_response = self.facade.set_order_details(str(self.request.basket.total_incl_tax))
+        return super(PaymentDetailsView, self).get(*args, **kwargs)
+
     def get_context_data(self, **kwargs):
         # Add bankcard form to the template context
         ctx = super(PaymentDetailsView, self).get_context_data(**kwargs)

@@ -45,3 +45,16 @@ ORDER_REFERENCE_DETAILS_XML = (
     '</ResponseMetadata>' +
     '</GetOrderReferenceDetailsResponse>'
 )
+
+
+INVALID_SIGNATURE_RESPONSE = (
+    '<?xml version="1.0"?>' +
+    '<ErrorResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">' +
+    '<Error>' +
+    '<Type>Sender</Type>' +
+    '<Code>SignatureDoesNotMatch</Code>' +
+    '<Message>The request signature we calculated does not match the signature you provided. Check your AWS Secret Access Key and signing method. Consult the service documentation for details.</Message>' +
+    '</Error>' +
+    '<RequestID>fe91b76f-5ae1-4965-b16a-6d15d0495e00</RequestID>' +
+    '</ErrorResponse>'
+)

@@ -82,6 +82,7 @@ class Gateway(object):
         key_list = payload.keys()
         key_list.sort()
         values = map(payload.get, key_list)
+        # Amazon encode spaces as %20 so replace an '+'
         url_string = urllib.urlencode(zip(key_list, values)).replace('+', '%20')
         canonical_form += url_string
         return canonical_form

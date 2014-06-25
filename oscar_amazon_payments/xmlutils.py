@@ -13,6 +13,13 @@ def get_partial_address(xml):
     address['country_code'] = address_xml.find('countrycode').string
     return address
 
+def get_full_shipping_address(xml):
+    """
+    Gets the full shipping address from the response xml
+    """
+    # TODO flush out stub
+    return xml
+
 
 def get_status(xml):
     """

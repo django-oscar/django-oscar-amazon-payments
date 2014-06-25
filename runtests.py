@@ -6,7 +6,9 @@ from optparse import OptionParser
 from django.conf import settings
 
 if not settings.configured:
-    amazon_settings = {}
+    amazon_settings = {
+        'AMAZON_PAYMENTS_CURRENCY': 'GBP'
+    }
     try:
         from integration import *
     except ImportError:

@@ -22,6 +22,7 @@ class PaymentDetailsView(OscarPaymentDetailsView):
             raise http.Http404
         self.facade = Facade(self.reference_id)
         order_details_response = self.facade.set_order_details(str(self.request.basket.total_incl_tax))
+        import ipdb; ipdb.set_trace()
         return super(PaymentDetailsView, self).get(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -111,7 +112,7 @@ class ShippingMethodView(OscarShippingMethodView):
         self.reference_id = self.request.GET.get('reference_id')
         if self.reference_id:
             facade = Facade(self.reference_id)
-            address = facade.get_shipping_address()
+            address = facade.get_partial_shipping_address()
             address_fields = model_to_dict(address)
             address_fields.pop("country", None)
 

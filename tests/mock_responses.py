@@ -46,6 +46,46 @@ ORDER_REFERENCE_DETAILS_XML = (
     '</GetOrderReferenceDetailsResponse>'
 )
 
+SET_ORDER_REFERENCE_DETAILS_RESPONSE_XML = (
+    '<SetOrderReferenceDetailsResponse xmlns="http://mws.amazonservices.com/schema/OffAmazonPayments/2013-01-01">' +
+    '<SetOrderReferenceDetailsResult>' +
+    '<OrderReferenceDetails>' +
+    '<AmazonOrderReferenceId>S02-1556010-3677478</AmazonOrderReferenceId>' +
+    '<ExpirationTimestamp>2014-12-22T10:25:51.805Z</ExpirationTimestamp>' +
+    '<OrderTotal>' +
+    '<Amount>2.99</Amount>' +
+    '<CurrencyCode>GBP</CurrencyCode>' +
+    '</OrderTotal>' +
+    '<Constraints>' +
+    '<Constraint>' +
+    '<ConstraintID>PaymentPlanNotSet</ConstraintID>' +
+    '<Description>The buyer has not been able to select a Payment method for the given Order Reference.</Description>' +
+    '</Constraint>' +
+    '</Constraints>' +
+    '<Destination>' +
+    '<DestinationType>Physical</DestinationType>' +
+    '<PhysicalDestination>' +
+    '<PostalCode>SE1 5RB</PostalCode>' +
+    '<CountryCode>GB</CountryCode>' +
+    '<City>LONDON</City>' +
+    '</PhysicalDestination>' +
+    '</Destination>' +
+    '<OrderReferenceStatus>' +
+    '<State>Draft</State>' +
+    '</OrderReferenceStatus>' +
+    '<ReleaseEnvironment>Sandbox</ReleaseEnvironment>' +
+    '<SellerOrderAttributes>' +
+    '<StoreName>Oscar Sandbox</StoreName>' +
+    '<SellerOrderId>1234</SellerOrderId>' +
+    '</SellerOrderAttributes>' +
+    '<CreationTimestamp>2014-06-25T10:25:51.805Z</CreationTimestamp>' +
+    '</OrderReferenceDetails>' +
+    '</SetOrderReferenceDetailsResult>' +
+    '<ResponseMetadata>' +
+    '<RequestId>11c37534-de6a-4ee9-a07f-a44c7f6aece6</RequestId>' +
+    '</ResponseMetadata>' +
+    '</SetOrderReferenceDetailsResponse>'
+)
 
 INVALID_SIGNATURE_RESPONSE = (
     '<?xml version="1.0"?>' +

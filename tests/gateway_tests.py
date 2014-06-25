@@ -22,7 +22,9 @@ class TestGateway(TestCase):
         self.assertEqual(ref_details, mock_responses.ORDER_REFERENCE_DETAILS_XML)
 
     def test_set_order_reference_details(self):
-        pass
+        self.gateway._do_request = Mock(return_value=mock_responses.SET_ORDER_REFERENCE_DETAILS_RESPONSE_XML)
+        set_ref_details = self.gateway.set_order_reference_details('2.99', 'GBP', '1234')
+        self.assertEqual(set_ref_details, mock_responses.SET_ORDER_REFERENCE_DETAILS_RESPONSE_XML)
 
     def test_confirm_order_reference(self):
         pass

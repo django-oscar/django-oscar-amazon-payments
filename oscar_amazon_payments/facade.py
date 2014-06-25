@@ -80,17 +80,31 @@ class Facade(object):
     def get_status_with_info(self):
         pass
 
-    def get_shipping_address(self):
+    def get_partial_shipping_address(self):
         """
-        TODO - if we have already fetched the shipping address, get it from the database and not amazon
-
-        but if we have only fetched a partial address, get the rest from amazon and update the database
+        Get the partial shipping address from amazon
         """
         response = self.gateway.get_order_reference_details()
         self.handle_response(response)
         address = xmlutils.get_partial_address(response.content)
         country = Country.objects.get(iso_3166_1_a3=address['country_code'])
         shipping_address = ShippingAddress(line1='', state=address['city'], postcode=address['post_code'], country=country)
+        shipping_address.save()
+        return shipping_address
+
+    def get_full_shipping_address(self):
+        """
+        Get the full shipping address from amazon
+
+        TODO - if we have already fetched the shipping address, get it from the database and not amazon
+
+        but if we have only fetched a partial address, get the rest from amazon and update the database
+        """
+        response = self.gateway.get_order_reference_details()
+        self.handle_response(response)
+        address = xmlutils.get_full_address(response.content)
+        country = Country.objects.get(iso_3166_1_a3=address['country_code'])
+        shipping_address = ShippingAddress(line1=address['line_1'], state=address['city'], postcode=address['post_code'], country=country)
         shipping_address.save()
         return shipping_address
 
